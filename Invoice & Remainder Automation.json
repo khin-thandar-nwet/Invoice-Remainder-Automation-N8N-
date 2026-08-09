@@ -1,0 +1,1171 @@
+{
+  "name": "Invoice & Remainder Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        688,
+        -192
+      ],
+      "id": "8c6e8de4-f3e5-45e1-a9a7-6abb16a3cebb",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -208
+      ],
+      "id": "f199a04b-5bc9-4623-b102-ef8361627092",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        112
+      ],
+      "id": "6efcb8a7-9234-4c2e-829c-1e8c1a13122c",
+      "name": "Wait",
+      "webhookId": "2779f0d9-e5fe-444a-a85b-0c52857f62c8"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        336
+      ],
+      "id": "b5cf222e-87dc-4c83-b3e6-60bb7f87e848",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4",
+          "mode": "list",
+          "cachedResultName": "invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "S1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        176,
+        0
+      ],
+      "id": "d2c547a2-37f1-43fd-a6e4-5a028242635b",
+      "name": "invoice sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2ehSqbbqdR25aq6M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 15,
+              "triggerAtMinute": 40
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "d21a356d-4e64-4d61-bc64-2460331a7511",
+      "name": "Daily"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1f3135ac-ef2f-469d-bd95-ae962fd54e9c",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "9c36e7e2-eba8-4f21-bd4a-3c3cbad0a46f",
+              "leftValue": "={{ DateTime.fromISO($json[\"Sent_At\"]) <= $now.minus({ minutes: 7 })\n&& String($json[\"Paid_Status\"] || \"\").toLowerCase() !== \"paid\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        464
+      ],
+      "id": "5a8b6122-de79-421c-9e4e-748d90b6a389",
+      "name": "Payment Remainder?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "84e8af46-6818-41cd-aa2e-7e85a31c0ff9",
+              "leftValue": "={{ $json.Inv_No }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a12d6d03-d06f-4248-a536-906de519a359",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "New",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        0
+      ],
+      "id": "88f03f36-8c93-4cbb-a62e-76c6f9a92a4c",
+      "name": "Checking New Invoice? Remainder ?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        864,
+        400
+      ],
+      "id": "c120e258-9214-4f5f-9ebe-6985551234ba",
+      "name": "Send remainder per 5 sec"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        544
+      ],
+      "id": "50ac7cdf-5353-4d4f-8beb-a458fb9b504b",
+      "name": "5 Sec Schedule",
+      "webhookId": "f788d309-d8f4-48cc-a640-2652cd721701"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4",
+          "mode": "list",
+          "cachedResultName": "invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "S1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Inv_No": "={{ $('Loop Over Items').item.json.Inv_No }}",
+            "Sent_At": "={{ $now.toISO() }}",
+            "Status": "Sent",
+            "Remainder_Count": "1"
+          },
+          "matchingColumns": [
+            "Inv_No"
+          ],
+          "schema": [
+            {
+              "id": "Inv_No",
+              "displayName": "Inv_No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cus_Name",
+              "displayName": "Cus_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sent_At",
+              "displayName": "Sent_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Paid_Status",
+              "displayName": "Paid_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Remainder_Count",
+              "displayName": "Remainder_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_Remainder_At",
+              "displayName": "Last_Remainder_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        112
+      ],
+      "id": "0c2d8a62-95f6-4c9f-bb97-c873771493e5",
+      "name": "Record status and date",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2ehSqbbqdR25aq6M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $json.Inv_No }}.pdf",
+        "limit": 1,
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1GID6xVtj9B0NMW2PsQK0XO-KOq-8vOKi",
+            "mode": "list",
+            "cachedResultName": "invoice",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1GID6xVtj9B0NMW2PsQK0XO-KOq-8vOKi"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        112
+      ],
+      "id": "3a9e452f-2f6e-49eb-8c10-d80cbe4e4948",
+      "name": "Search Invoice folder in google drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "qbykjJnAyshjn0Qy",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "invoicePdf",
+          "fileName": "={{ $json.name }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        112
+      ],
+      "id": "22fc6627-b63f-49ab-983f-d16171da3c2b",
+      "name": "Download invoice pdf from drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "qbykjJnAyshjn0Qy",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Send remainder per 5 sec').item.json.Email }}",
+        "subject": "Payment Remainder",
+        "emailType": "text",
+        "message": "Payment Remainder ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        544
+      ],
+      "id": "af4929fd-180d-4b8d-9d57-8f4d021cdf81",
+      "name": "Send Payment Remainder",
+      "webhookId": "db210912-11f5-45dd-9f87-e4b851d83d0a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6l9852qJCfDqe5Ry",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Loop Over Items').item.json.Email }}",
+        "subject": "Invoice From ABC Co., Ltd",
+        "emailType": "text",
+        "message": "Thank you for your purchase. Please find the invoice attached for your reference.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "invoicePdf"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        112
+      ],
+      "id": "6e14edd1-6fa9-4177-886c-d4a20cbfd85a",
+      "name": "Send invoice email",
+      "webhookId": "0ea4423c-4f1e-4851-8045-1d6f8d2a74b0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6l9852qJCfDqe5Ry",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4",
+          "mode": "list",
+          "cachedResultName": "invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "S1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Inv_No": "={{ $('Send remainder per 5 sec').item.json['Inv_No']}}",
+            "Status": "Reminded",
+            "Last_Remainder_At": "={{ $now.toISO() }}",
+            "Remainder_Count": "={{ Number($('Send remainder per 5 sec').item.json.Remainder_Count || 0) + 1 }}"
+          },
+          "matchingColumns": [
+            "Inv_No"
+          ],
+          "schema": [
+            {
+              "id": "Inv_No",
+              "displayName": "Inv_No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cus_Name",
+              "displayName": "Cus_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sent_At",
+              "displayName": "Sent_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Paid_Status",
+              "displayName": "Paid_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Remainder_Count",
+              "displayName": "Remainder_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Remainder_At",
+              "displayName": "Last_Remainder_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        544
+      ],
+      "id": "fadd92d9-f9d5-44b0-b654-8ea7ee8d0282",
+      "name": "Record Remainder Count and Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2ehSqbbqdR25aq6M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dc43730d-2b31-4441-b314-95e56a472215",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Reminded",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "93c9d778-11a2-4cad-9607-7e33d3c19960",
+              "leftValue": "={{ DateTime.fromISO($json[\"Sent_At\"]) <= $now.minus({ minutes: 7 }) && String($json[\"Paid_Status\"] || \"\").toLowerCase() !== \"paid\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        832
+      ],
+      "id": "f60753a8-550d-401d-a33f-88d42b3f645a",
+      "name": "Remind Status"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        752
+      ],
+      "id": "eb6b67ff-b2c3-4662-8a0a-1b507e85c8c4",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1056,
+        736
+      ],
+      "id": "7484a7b5-9bf7-4c32-9c9a-71889e6adb44",
+      "name": "Payment Remainder per 5 sec"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4",
+          "mode": "list",
+          "cachedResultName": "invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "S1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Fv2YVcGoBg_-c4CZAUIPdVEBcy_MWyUc30DLi2HmGe4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Inv_No": "={{ $('Payment Remainder per 5 sec').item.json['Inv_No']}}",
+            "Remainder_Count": "={{ Number($('Payment Remainder per 5 sec').item.json.Remainder_Count || 0) + 1 }}",
+            "Last_Remainder_At": "={{ $now.toISO() }} "
+          },
+          "matchingColumns": [
+            "Inv_No"
+          ],
+          "schema": [
+            {
+              "id": "Inv_No",
+              "displayName": "Inv_No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cus_Name",
+              "displayName": "Cus_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due_Date",
+              "displayName": "Due_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Sent_At",
+              "displayName": "Sent_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Paid_Status",
+              "displayName": "Paid_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Remainder_Count",
+              "displayName": "Remainder_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_Remainder_At",
+              "displayName": "Last_Remainder_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1504,
+        944
+      ],
+      "id": "aca34961-fbae-499a-a78b-88752f568573",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2ehSqbbqdR25aq6M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Payment Remainder per 5 sec').item.json.Email }}",
+        "subject": "Payment Remainder",
+        "emailType": "text",
+        "message": "This is payment Remainder Email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        944
+      ],
+      "id": "2555ce30-33b5-4d95-aa46-138c91cc5584",
+      "name": "Send remainder email",
+      "webhookId": "cbc6b3a1-616a-4231-90cb-73bb9d7369cf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6l9852qJCfDqe5Ry",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Search Invoice folder in google drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "invoice sheet": {
+      "main": [
+        [
+          {
+            "node": "Checking New Invoice? Remainder ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily": {
+      "main": [
+        [
+          {
+            "node": "invoice sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Remainder?": {
+      "main": [
+        [
+          {
+            "node": "Send remainder per 5 sec",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remind Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checking New Invoice? Remainder ?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Remainder?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send remainder per 5 sec": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Payment Remainder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 Sec Schedule": {
+      "main": [
+        [
+          {
+            "node": "Send remainder per 5 sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record status and date": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Invoice folder in google drive": {
+      "main": [
+        [
+          {
+            "node": "Download invoice pdf from drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download invoice pdf from drive": {
+      "main": [
+        [
+          {
+            "node": "Send invoice email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Payment Remainder": {
+      "main": [
+        [
+          {
+            "node": "Record Remainder Count and Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send invoice email": {
+      "main": [
+        [
+          {
+            "node": "Record status and date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Remainder Count and Status": {
+      "main": [
+        [
+          {
+            "node": "5 Sec Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remind Status": {
+      "main": [
+        [
+          {
+            "node": "Payment Remainder per 5 sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Remainder per 5 sec": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send remainder email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Payment Remainder per 5 sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send remainder email": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "86439216-574f-4eff-83e3-25364a0a3f64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0f2c852279b318c00c4d24c573ed26be713c0f632853fba77a39039780ef32b4"
+  },
+  "nodeGroups": [],
+  "id": "bD2wdQj64CLH8Eap",
+  "tags": []
+}
